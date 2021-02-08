@@ -58,11 +58,10 @@ Finally convert to a data frame for wordcloud2 to display
 ```{r Text processing }
 
 
-text <- resume_text$text# Create a corpus
-docs <- Corpus(VectorSource(text))
-docs <- tm_map(docs, content_transformer(tolower))
-docs = tm_map(docs, removeWords, c(stopwords("english"),"the","using","worked","based","created"))
-dtm <- TermDocumentMatrix(docs) 
+corpus <- Corpus(VectorSource(resume_text$text))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus = tm_map(corpus, removeWords, c(stopwords("english"), "using","worked","based","created"))
+dtm <- TermDocumentMatrix(corpus) 
 matrix <- as.matrix(dtm) 
 words <- sort(rowSums(matrix),decreasing=TRUE) 
 df <- data.frame(word = names(words),freq=words)
