@@ -1,0 +1,91 @@
+---
+title: "WCYR Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+ 
+Load a number of packages we will need to organize our text. 
+
+```{r}
+
+library(readtext)
+library(wordcloud)
+library(RColorBrewer)
+library(wordcloud2)
+library(tm)
+library(webshot)
+library("htmlwidgets")
+webshot::install_phantomjs()
+```
+Read the resume file.
+
+```{r resume_read}
+
+# Read the Resume file. 
+filename = 'DougNeedham2021-01.docx'
+resume_text <- readtext(filename)
+```
+
+Let's look at the data.  
+
+```{r}
+
+
+print(resume_text$text)
+
+```
+
+Basic Word cloud for words that have a frequency greater than 2. 
+
+```{r}
+wordcloud(resume_text$text,min.freq=2)
+
+
+```
+
+Now we do some interesting things. 
+Convert the text into a corpus, 
+
+Change everything to lower case. 
+
+Remove standard stopwords along with a few specific ones that were showing up too often. 
+
+Create a frequency matrix
+
+Finally convert to a data frame for wordcloud2 to display 
+
+```{r Text processing }
+
+
+text <- resume_text$text# Create a corpus
+docs <- Corpus(VectorSource(text))
+docs <- tm_map(docs, content_transformer(tolower))
+docs = tm_map(docs, removeWords, c(stopwords("english"),"the","using","worked","based","created"))
+dtm <- TermDocumentMatrix(docs) 
+matrix <- as.matrix(dtm) 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+
+```
+
+Subset the data frame row words that have a freq greater than 1 
+
+```{r Display Wordcloud}
+wordcloud2(data=df[df$freq>1,], size=1.6, color='random-dark',shape= 'star' )
+
+
+```
+```{r Create files. }
+
+
+# Create the image
+image <- wordcloud2(data=df[df$freq>1,], size=1.6, color='random-dark',shape= 'star' )
+
+# save the image in html
+
+saveWidget(image,"dougneedham.html",selfcontained = F)
+
+# Read the html file, then export the png file using large dimensions 
+webshot("dougneedham.html","dougneedham.png", delay =2, vwidth = 1920, vheight=969)
+```
